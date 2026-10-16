@@ -1,27 +1,40 @@
 <script setup lang="ts">
 import type { Rezept } from '@/types'
 import { RouterLink } from 'vue-router'
+import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Message from 'primevue/message'
 
 defineProps<{
   rezepte: Rezept[]
 }>()
+
+const emit = defineEmits<{
+  loeschen: [id: number]
+}>()
 </script>
 
 <template>
   <div v-if="rezepte.length > 0" class="rezept-grid">
-    <RouterLink
-      v-for="rezept in rezepte"
-      :key="rezept.id"
-      :to="{ name: 'rezept-detail', params: { id: rezept.id } }"
-      class="rezept-link"
-    >
-      <Card>
-        <template #title>{{ rezept.titel }}</template>
-        <template #subtitle>{{ rezept.portionen }} Portionen</template>
-      </Card>
-    </RouterLink>
+    <Card v-for="rezept in rezepte" :key="rezept.id">
+      <template #title>
+        <RouterLink :to="{ name: 'rezept-detail', params: { id: rezept.id } }" class="rezept-link">
+          {{ rezept.titel }}
+        </RouterLink>
+      </template>
+      <template #subtitle>{{ rezept.portionen }} Portionen</template>
+      <template #footer>
+        <Button
+          icon="pi pi-trash"
+          label="Löschen"
+          severity="danger"
+          variant="text"
+          size="small"
+          :aria-label="`${rezept.titel} löschen`"
+          @click="emit('loeschen', rezept.id)"
+        />
+      </template>
+    </Card>
   </div>
   <Message v-else severity="info">Keine Rezepte vorhanden.</Message>
 </template>

@@ -61,19 +61,6 @@ async function speichern() {
     @submit.prevent="speichern"
     @keydown.esc="emit('abgebrochen')"
   >
-    <div class="feld feld-name">
-      <label :for="`name-${eintrag.id}`">Name</label>
-      <InputText
-        :id="`name-${eintrag.id}`"
-        ref="namensfeld"
-        v-model="name"
-        :invalid="!!feldfehler.name"
-        fluid
-      />
-      <Message v-if="feldfehler.name" severity="error" size="small" variant="simple">
-        {{ feldfehler.name }}
-      </Message>
-    </div>
     <div class="feld feld-stueckzahl">
       <label :for="`stueckzahl-${eintrag.id}`">Stück</label>
       <InputNumber
@@ -89,6 +76,19 @@ async function speichern() {
       </InputNumber>
       <Message v-if="feldfehler.stueckzahl" severity="error" size="small" variant="simple">
         {{ feldfehler.stueckzahl }}
+      </Message>
+    </div>
+    <div class="feld feld-name">
+      <label :for="`name-${eintrag.id}`">Name</label>
+      <InputText
+        :id="`name-${eintrag.id}`"
+        ref="namensfeld"
+        v-model="name"
+        :invalid="!!feldfehler.name"
+        fluid
+      />
+      <Message v-if="feldfehler.name" severity="error" size="small" variant="simple">
+        {{ feldfehler.name }}
       </Message>
     </div>
     <Message v-if="fehler" severity="error" class="gesamtfehler">
@@ -119,10 +119,9 @@ async function speichern() {
 <style scoped>
 .bearbeiten {
   display: grid;
-  grid-template-columns: 1fr 9rem;
+  grid-template-columns: 9rem 1fr;
   grid-template-areas:
-    'name name'
-    'stueckzahl .'
+    'stueckzahl name'
     'fehler fehler'
     'knoepfe knoepfe';
   gap: 0.75rem 1rem;
@@ -165,15 +164,5 @@ async function speichern() {
 
 .loeschen {
   margin-left: auto;
-}
-
-@media (min-width: 768px) {
-  .bearbeiten {
-    grid-template-columns: 1fr 9rem;
-    grid-template-areas:
-      'name stueckzahl'
-      'fehler fehler'
-      'knoepfe knoepfe';
-  }
 }
 </style>

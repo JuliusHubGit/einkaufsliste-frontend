@@ -55,21 +55,6 @@ async function hinzufuegen() {
 
 <template>
   <form class="formular" novalidate @submit.prevent="hinzufuegen">
-    <div class="feld feld-name">
-      <label for="eintrag-name">Was fehlt?</label>
-      <AutoComplete
-        v-model="name"
-        input-id="eintrag-name"
-        :suggestions="vorschlaege"
-        :invalid="!!feldfehler.name"
-        :delay="200"
-        fluid
-        @complete="vorschlaegeLaden"
-      />
-      <Message v-if="feldfehler.name" severity="error" size="small" variant="simple">
-        {{ feldfehler.name }}
-      </Message>
-    </div>
     <div class="feld feld-stueckzahl">
       <label for="eintrag-stueckzahl">Stück</label>
       <InputNumber
@@ -87,6 +72,21 @@ async function hinzufuegen() {
         {{ feldfehler.stueckzahl }}
       </Message>
     </div>
+    <div class="feld feld-name">
+      <label for="eintrag-name">Was fehlt?</label>
+      <AutoComplete
+        v-model="name"
+        input-id="eintrag-name"
+        :suggestions="vorschlaege"
+        :invalid="!!feldfehler.name"
+        :delay="200"
+        fluid
+        @complete="vorschlaegeLaden"
+      />
+      <Message v-if="feldfehler.name" severity="error" size="small" variant="simple">
+        {{ feldfehler.name }}
+      </Message>
+    </div>
     <Button type="submit" label="Hinzufügen" icon="pi pi-plus" :loading="sendet" class="absenden" />
     <Message v-if="fehler" severity="error" class="gesamtfehler">
       Der Eintrag wurde nicht gespeichert. Prüfe die Verbindung und versuche es noch einmal.
@@ -97,10 +97,10 @@ async function hinzufuegen() {
 <style scoped>
 .formular {
   display: grid;
-  grid-template-columns: 1fr 9rem;
+  grid-template-columns: 9rem 1fr;
   grid-template-areas:
-    'name name'
-    'stueckzahl absenden'
+    'stueckzahl name'
+    'absenden absenden'
     'fehler fehler';
   align-items: start;
   gap: 0.75rem 1rem;
@@ -131,8 +131,6 @@ async function hinzufuegen() {
 
 .absenden {
   grid-area: absenden;
-  /* buendig mit den Eingabefeldern, unter der Beschriftung */
-  margin-top: calc(1.5em + 0.35rem);
 }
 
 .gesamtfehler {
@@ -141,10 +139,15 @@ async function hinzufuegen() {
 
 @media (min-width: 768px) {
   .formular {
-    grid-template-columns: 1fr 9rem auto;
+    grid-template-columns: 9rem 1fr auto;
     grid-template-areas:
-      'name stueckzahl absenden'
+      'stueckzahl name absenden'
       'fehler fehler fehler';
+  }
+
+  .absenden {
+    /* buendig mit den Eingabefeldern, unter der Beschriftung */
+    margin-top: calc(1.5em + 0.35rem);
   }
 }
 </style>

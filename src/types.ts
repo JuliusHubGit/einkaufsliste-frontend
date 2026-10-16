@@ -14,3 +14,11 @@ export interface Einkaufslisteneintrag {
   erledigt: boolean
   besitzer: string
 }
+
+export interface NeuerEintrag {
+  name: string
+  stueckzahl: number
+}
+
+/** Feldfehler aus einer 400-Antwort des Backends, z. B. { name: 'Bitte einen Namen eingeben' } */
+export type Feldfehler = Partial<Record<keyof NeuerEintrag, string>>

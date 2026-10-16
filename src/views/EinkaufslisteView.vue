@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import EinkaufslisteListe from '@/components/EinkaufslisteListe.vue'
+import EinkaufslistenFormular from '@/components/EinkaufslistenFormular.vue'
 import { apiClient } from '@/api/client'
 import type { Einkaufslisteneintrag } from '@/types'
 import Message from 'primevue/message'
@@ -21,6 +22,10 @@ onMounted(async () => {
     laedt.value = false
   }
 })
+
+function eintragAngelegt(eintrag: Einkaufslisteneintrag) {
+  eintraege.value = [...eintraege.value, eintrag]
+}
 
 async function reihenfolgeSpeichern(ids: number[]) {
   speicherFehler.value = false
@@ -46,6 +51,7 @@ async function reihenfolgeSpeichern(ids: number[]) {
       Die Einkaufsliste konnte nicht geladen werden.
     </Message>
     <template v-else>
+      <EinkaufslistenFormular @angelegt="eintragAngelegt" />
       <Message v-if="speicherFehler" severity="warn">
         Die neue Reihenfolge konnte nicht gespeichert werden.
       </Message>

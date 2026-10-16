@@ -21,4 +21,10 @@ export interface NeuerEintrag {
 }
 
 /** Feldfehler aus einer 400-Antwort des Backends, z. B. { name: 'Bitte einen Namen eingeben' } */
-export type Feldfehler = Partial<Record<keyof NeuerEintrag, string>>
+export type Feldfehler = Partial<Record<keyof EintragAenderung, string>>
+
+export interface EintragAenderung {
+  name: string
+  stueckzahl: number
+  erledigt: boolean
+}

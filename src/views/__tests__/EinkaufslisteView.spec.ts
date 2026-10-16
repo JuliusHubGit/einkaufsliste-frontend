@@ -8,6 +8,7 @@ vi.mock('@/api/client', () => ({
   apiClient: {
     get: vi.fn<(url: string) => Promise<unknown>>(),
     put: vi.fn<(url: string, data: unknown) => Promise<unknown>>(),
+    delete: vi.fn<(url: string) => Promise<unknown>>(),
   },
 }))
 
@@ -26,6 +27,7 @@ describe('EinkaufslisteView', () => {
   beforeEach(() => {
     vi.mocked(apiClient.get).mockReset()
     vi.mocked(apiClient.put).mockReset()
+    vi.mocked(apiClient.delete).mockReset()
   })
 
   it('laedt die Einkaufsliste vom Backend und zeigt sie an', async () => {
@@ -63,5 +65,48 @@ describe('EinkaufslisteView', () => {
     await flushPromises()
 
     expect(wrapper.text()).toContain('Die Einkaufsliste konnte nicht geladen werden')
+  })
+
+  it('hakt einen Eintrag ab und verschiebt ihn zu "Erledigt"', async () => {
+    vi.mocked(apiClient.get).mockResolvedValue({ data: [milch, eier] })
+    vi.mocked(apiClient.put).mockResolvedValue({ data: { ...milch, erledigt: true } })
+    const wrapper = mount(EinkaufslisteView)
+    await flushPromises()
+
+    wrapper.findComponent(EinkaufslisteListe).vm.$emit('abhaken', milch)
+    await flushPromises()
+
+    expect(apiClient.put).toHaveBeenCalledWith('/api/einkaufsliste/1', {
+      name: 'Milch',
+      stueckzahl: 2,
+      erledigt: true,
+    })
+    expect(wrapper.findAll('li.erledigt .name').map((el) => el.text())).toEqual(['Milch'])
+  })
+
+  it('loescht einen Eintrag', async () => {
+    vi.mocked(apiClient.get).mockResolvedValue({ data: [milch, eier] })
+    vi.mocked(apiClient.delete).mockResolvedValue({ status: 204 })
+    const wrapper = mount(EinkaufslisteView)
+    await flushPromises()
+
+    wrapper.findComponent(EinkaufslisteListe).vm.$emit('loeschen', 1)
+    await flushPromises()
+
+    expect(apiClient.delete).toHaveBeenCalledWith('/api/einkaufsliste/1')
+    expect(wrapper.findAll('li .name').map((el) => el.text())).toEqual(['Eier'])
+  })
+
+  it('behaelt den Eintrag und meldet einen Fehler, wenn Loeschen fehlschlaegt', async () => {
+    vi.mocked(apiClient.get).mockResolvedValue({ data: [milch] })
+    vi.mocked(apiClient.delete).mockRejectedValue(new Error('Not Found'))
+    const wrapper = mount(EinkaufslisteView)
+    await flushPromises()
+
+    wrapper.findComponent(EinkaufslisteListe).vm.$emit('loeschen', 1)
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Milch')
+    expect(wrapper.text()).toContain('Der Eintrag konnte nicht gelöscht werden')
   })
 })

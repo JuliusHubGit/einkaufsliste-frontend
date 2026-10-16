@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import draggable from 'vuedraggable'
 import Message from 'primevue/message'
+import EintragZeile from '@/components/EintragZeile.vue'
 import type { Einkaufslisteneintrag } from '@/types'
 
 const props = defineProps<{
@@ -10,6 +11,9 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   umsortiert: [ids: number[]]
+  abhaken: [eintrag: Einkaufslisteneintrag]
+  loeschen: [id: number]
+  gespeichert: [eintrag: Einkaufslisteneintrag]
 }>()
 
 const offene = ref<Einkaufslisteneintrag[]>([])
@@ -45,11 +49,12 @@ function nachVerschieben() {
     >
       <template #item="{ element }">
         <li class="eintrag">
-          <span class="stueckzahl">{{ element.stueckzahl }}×</span>
-          <span class="beschreibung">
-            <span class="name">{{ element.name }}</span>
-            <span v-if="element.rezeptmenge" class="rezeptmenge">{{ element.rezeptmenge }}</span>
-          </span>
+          <EintragZeile
+            :eintrag="element"
+            @abhaken="emit('abhaken', element)"
+            @loeschen="emit('loeschen', element.id)"
+            @gespeichert="emit('gespeichert', $event)"
+          />
           <button type="button" class="drag-griff" :aria-label="`${element.name} verschieben`">
             <i class="pi pi-bars" aria-hidden="true" />
           </button>
@@ -61,12 +66,13 @@ function nachVerschieben() {
       <h2 id="erledigt-titel">Erledigt</h2>
       <ul class="eintraege">
         <li v-for="eintrag in erledigte" :key="eintrag.id" class="eintrag erledigt">
-          <span class="stueckzahl">{{ eintrag.stueckzahl }}×</span>
-          <span class="beschreibung">
-            <span class="name">{{ eintrag.name }}</span>
-            <span v-if="eintrag.rezeptmenge" class="rezeptmenge">{{ eintrag.rezeptmenge }}</span>
-          </span>
-          <i class="pi pi-check haken" aria-label="erledigt" />
+          <EintragZeile
+            :eintrag="eintrag"
+            @abhaken="emit('abhaken', eintrag)"
+            @loeschen="emit('loeschen', eintrag.id)"
+            @gespeichert="emit('gespeichert', $event)"
+          />
+          <span class="griff-platz" aria-hidden="true" />
         </li>
       </ul>
     </section>
@@ -83,50 +89,13 @@ function nachVerschieben() {
 .eintrag {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  min-height: 4.5rem;
-  padding: 0.75rem 0;
+  gap: 0.25rem;
   border-bottom: 1px solid var(--linie);
   background: var(--emaille);
 }
 
-/* Die Emaille-Marke: Stueckzahl gross, in Senf mit Kobalt-Rand */
-.stueckzahl {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 50%;
-  background: var(--senf);
-  color: var(--senf-tinte);
-  border: var(--rand) solid var(--kobalt);
-  box-shadow: inset 0 -3px 0 rgb(0 0 0 / 0.12);
-  font-size: 1.125rem;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.03em;
-}
-
-.beschreibung {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.name {
-  font-size: 1.25rem;
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-
-.rezeptmenge {
-  color: var(--zinn);
-  font-size: 0.9375rem;
-}
-
-.drag-griff {
+.drag-griff,
+.griff-platz {
   flex: none;
   display: grid;
   place-items: center;
@@ -138,6 +107,12 @@ function nachVerschieben() {
   color: var(--zinn);
   cursor: grab;
   touch-action: none;
+}
+
+/* Beim Bearbeiten braucht das Formular die ganze Breite */
+.eintrag:has(.bearbeiten) .drag-griff,
+.eintrag:has(.bearbeiten) .griff-platz {
+  display: none;
 }
 
 .drag-griff:hover {
@@ -157,28 +132,5 @@ function nachVerschieben() {
 
 .erledigt-bereich h2 {
   color: var(--zinn);
-}
-
-.erledigt .stueckzahl {
-  background: transparent;
-  color: var(--zinn);
-  border-color: var(--linie);
-  box-shadow: none;
-}
-
-.erledigt .name {
-  font-weight: 400;
-  color: var(--zinn);
-  text-decoration: line-through;
-  text-decoration-color: var(--kraeuter);
-  text-decoration-thickness: 2px;
-}
-
-.haken {
-  flex: none;
-  width: 3rem;
-  text-align: center;
-  color: var(--kraeuter);
-  font-size: 1.25rem;
 }
 </style>

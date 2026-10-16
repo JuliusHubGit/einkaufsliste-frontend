@@ -4,7 +4,7 @@ import HomeView from '../HomeView.vue'
 import { apiClient } from '@/api/client'
 
 vi.mock('@/api/client', () => ({
-  apiClient: { get: vi.fn() },
+  apiClient: { get: vi.fn<(url: string) => Promise<unknown>>() },
 }))
 
 describe('HomeView', () => {
@@ -18,5 +18,14 @@ describe('HomeView', () => {
 
     expect(wrapper.text()).toContain('Spaghetti Carbonara')
     expect(apiClient.get).toHaveBeenCalledWith('/api/rezepte')
+  })
+
+  it('zeigt eine Fehlermeldung, wenn das Backend nicht erreichbar ist', async () => {
+    vi.mocked(apiClient.get).mockRejectedValue(new Error('Network Error'))
+
+    const wrapper = mount(HomeView)
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Die Rezepte konnten nicht geladen werden')
   })
 })

@@ -65,42 +65,57 @@ onUnmounted(anhalten)
       />
     </label>
     <p class="timer-anzeige" data-testid="timer-anzeige">{{ anzeige }}</p>
-    <Message v-if="abgelaufen" severity="success">Zeit abgelaufen!</Message>
+    <Message v-if="abgelaufen" severity="success">Zeit abgelaufen.</Message>
     <div class="timer-knoepfe">
       <Button v-if="!laeuft" label="Start" icon="pi pi-play" @click="starten" />
       <Button v-else label="Pause" icon="pi pi-pause" severity="secondary" @click="anhalten" />
-      <Button
-        label="Reset"
-        icon="pi pi-refresh"
-        severity="secondary"
-        outlined
-        @click="zuruecksetzen"
-      />
+      <Button label="Reset" icon="pi pi-refresh" outlined @click="zuruecksetzen" />
     </div>
   </div>
 </template>
 
 <style scoped>
 .timer {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    'anzeige eingabe'
+    'meldung meldung'
+    'knoepfe knoepfe';
+  align-items: end;
   gap: 1rem;
-  align-items: flex-start;
-}
-
-.timer-eingabe {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
 }
 
 .timer-anzeige {
-  font-size: 3rem;
+  grid-area: anzeige;
+  font-size: 3.5rem;
+  font-weight: 700;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
   margin: 0;
 }
 
+.timer-eingabe {
+  grid-area: eingabe;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: var(--zinn);
+  font-size: 0.875rem;
+}
+
+.timer-eingabe :deep(.p-inputnumber-input) {
+  width: 6rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.timer :deep(.p-message) {
+  grid-area: meldung;
+}
+
 .timer-knoepfe {
+  grid-area: knoepfe;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;

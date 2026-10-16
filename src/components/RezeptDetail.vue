@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Rezept } from '@/types'
-import Card from 'primevue/card'
 
 defineProps<{
   rezept: Rezept
@@ -8,8 +7,21 @@ defineProps<{
 </script>
 
 <template>
-  <Card>
-    <template #title>{{ rezept.titel }}</template>
-    <template #subtitle>{{ rezept.portionen }} Portionen</template>
-  </Card>
+  <header class="rezept-kopf">
+    <h1>{{ rezept.titel }}</h1>
+    <p class="portionen">{{ rezept.portionen }} Portionen</p>
+  </header>
 </template>
+
+<style scoped>
+.rezept-kopf {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.portionen {
+  color: var(--zinn);
+  font-size: 1.125rem;
+}
+</style>

@@ -34,8 +34,8 @@ async function loeschen(id: number) {
 </script>
 
 <template>
-  <main>
-    <h1>Meine Rezepte</h1>
+  <main class="seite">
+    <h1>Rezepte</h1>
     <ProgressSpinner v-if="laedt" />
     <Message v-else-if="fehler" severity="error">
       Die Rezepte konnten nicht geladen werden.
@@ -48,3 +48,11 @@ async function loeschen(id: number) {
     </template>
   </main>
 </template>
+
+<style scoped>
+.seite {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+</style>

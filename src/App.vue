@@ -3,77 +3,86 @@ import { RouterLink, RouterView } from 'vue-router'
 </script>
 
 <template>
-  <header>
-    <nav>
-      <RouterLink to="/">Rezepte</RouterLink>
-      <RouterLink to="/einkaufsliste">Einkaufsliste</RouterLink>
-      <RouterLink to="/about">About</RouterLink>
-    </nav>
-  </header>
+  <nav class="hauptnav" aria-label="Hauptnavigation">
+    <RouterLink to="/" class="tab" :class="{ aktiv: $route.name !== 'einkaufsliste' }">
+      <i class="pi pi-book" aria-hidden="true" />
+      Rezepte
+    </RouterLink>
+    <RouterLink to="/einkaufsliste" class="tab" active-class="aktiv">
+      <i class="pi pi-shopping-cart" aria-hidden="true" />
+      Einkaufsliste
+    </RouterLink>
+  </nav>
 
   <RouterView />
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+/* Smartphone: Leiste unten, in Daumenreichweite */
+.hauptnav {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 10;
+  display: flex;
+  height: calc(var(--nav-hoehe) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--flaeche);
+  border-top: 1px solid var(--linie);
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  font-size: 0.875rem;
+  text-decoration: none;
+  color: var(--zinn);
+  border-top: var(--rand) solid transparent;
 }
 
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
+.tab .pi {
+  font-size: 1.25rem;
 }
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
+.tab.aktiv {
+  color: var(--kobalt);
+  border-top-color: var(--kobalt);
+  font-weight: 700;
 }
 
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
+/* Desktop: Leiste oben */
+@media (min-width: 768px) {
+  .hauptnav {
+    position: static;
+    height: auto;
+    padding: 0;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+    background: none;
+    border-top: 0;
+    border-bottom: 1px solid var(--linie);
   }
 
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
+  .tab {
+    flex: none;
+    flex-direction: row;
+    gap: 0.5rem;
+    padding: 1.25rem 0 1rem;
     font-size: 1rem;
+    border-top: 0;
+    border-bottom: var(--rand) solid transparent;
+    margin-bottom: -1px;
+  }
 
-    padding: 1rem 0;
-    margin-top: 1rem;
+  .tab.aktiv {
+    border-bottom-color: var(--kobalt);
+  }
+
+  .tab .pi {
+    font-size: 1rem;
   }
 }
 </style>

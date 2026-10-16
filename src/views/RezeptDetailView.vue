@@ -6,7 +6,6 @@ import RezeptDetail from '@/components/RezeptDetail.vue'
 import KochTimer from '@/components/KochTimer.vue'
 import { apiClient } from '@/api/client'
 import type { Rezept } from '@/types'
-import Card from 'primevue/card'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 
@@ -34,16 +33,19 @@ onMounted(async () => {
 
 <template>
   <main class="rezept-detail-view">
-    <RouterLink to="/">← Alle Rezepte</RouterLink>
+    <RouterLink to="/" class="zurueck">
+      <i class="pi pi-arrow-left" aria-hidden="true" />
+      Alle Rezepte
+    </RouterLink>
     <ProgressSpinner v-if="laedt" />
     <Message v-else-if="nichtGefunden" severity="warn">Dieses Rezept gibt es nicht.</Message>
-    <Message v-else-if="fehler" severity="error"> Das Rezept konnte nicht geladen werden. </Message>
+    <Message v-else-if="fehler" severity="error">Das Rezept konnte nicht geladen werden.</Message>
     <template v-else-if="rezept">
       <RezeptDetail :rezept="rezept" />
-      <Card>
-        <template #title>Timer</template>
-        <template #content><KochTimer /></template>
-      </Card>
+      <section class="timer-feld" aria-labelledby="timer-titel">
+        <h2 id="timer-titel">Timer</h2>
+        <KochTimer />
+      </section>
     </template>
   </main>
 </template>
@@ -52,11 +54,29 @@ onMounted(async () => {
 .rezept-detail-view {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  align-items: stretch;
+  gap: 2rem;
 }
 
-.rezept-detail-view > a {
+.zurueck {
   align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--zinn);
+  text-decoration: none;
+}
+
+.zurueck:hover {
+  color: var(--tinte);
+}
+
+.timer-feld {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: var(--flaeche);
+  border: var(--rand) solid var(--kobalt);
+  border-radius: var(--rundung);
 }
 </style>

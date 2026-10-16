@@ -39,7 +39,7 @@ async function reihenfolgeSpeichern(ids: number[]) {
 </script>
 
 <template>
-  <main>
+  <main class="seite">
     <h1>Einkaufsliste</h1>
     <ProgressSpinner v-if="laedt" />
     <Message v-else-if="fehler" severity="error">
@@ -53,3 +53,11 @@ async function reihenfolgeSpeichern(ids: number[]) {
     </template>
   </main>
 </template>
+
+<style scoped>
+.seite {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+</style>

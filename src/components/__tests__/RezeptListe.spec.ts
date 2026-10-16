@@ -20,4 +20,12 @@ describe('RezeptListe', () => {
     const wrapper = mount(RezeptListe, { props: { rezepte: [] } })
     expect(wrapper.text()).toContain('Keine Rezepte vorhanden')
   })
+
+  it('meldet die Id des Rezepts, wenn Loeschen geklickt wird', async () => {
+    const wrapper = mount(RezeptListe, { props: { rezepte: beispielRezepte } })
+
+    await wrapper.get('button[aria-label="Linsensuppe löschen"]').trigger('click')
+
+    expect(wrapper.emitted('loeschen')).toEqual([[2]])
+  })
 })

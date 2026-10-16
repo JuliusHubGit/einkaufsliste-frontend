@@ -9,6 +9,7 @@ import ProgressSpinner from 'primevue/progressspinner'
 const rezepte = ref<Rezept[]>([])
 const laedt = ref(true)
 const fehler = ref(false)
+const loeschFehler = ref(false)
 
 onMounted(async () => {
   try {
@@ -20,6 +21,16 @@ onMounted(async () => {
     laedt.value = false
   }
 })
+
+async function loeschen(id: number) {
+  loeschFehler.value = false
+  try {
+    await apiClient.delete(`/api/rezepte/${id}`)
+    rezepte.value = rezepte.value.filter((rezept) => rezept.id !== id)
+  } catch {
+    loeschFehler.value = true
+  }
+}
 </script>
 
 <template>
@@ -29,6 +40,11 @@ onMounted(async () => {
     <Message v-else-if="fehler" severity="error">
       Die Rezepte konnten nicht geladen werden.
     </Message>
-    <RezeptListe v-else :rezepte="rezepte" />
+    <template v-else>
+      <Message v-if="loeschFehler" severity="error">
+        Das Rezept konnte nicht gelöscht werden.
+      </Message>
+      <RezeptListe :rezepte="rezepte" @loeschen="loeschen" />
+    </template>
   </main>
 </template>

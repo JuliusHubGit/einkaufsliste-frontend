@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { mount, flushPromises, RouterLinkStub } from '@vue/test-utils'
 import HomeView from '../HomeView.vue'
 import { apiClient } from '@/api/client'
 
@@ -13,7 +13,7 @@ describe('HomeView', () => {
       data: [{ id: 1, titel: 'Spaghetti Carbonara', portionen: 2, besitzer: 'demo' }],
     })
 
-    const wrapper = mount(HomeView)
+    const wrapper = mount(HomeView, { global: { stubs: { RouterLink: RouterLinkStub } } })
     await flushPromises()
 
     expect(wrapper.text()).toContain('Spaghetti Carbonara')
@@ -23,7 +23,7 @@ describe('HomeView', () => {
   it('zeigt eine Fehlermeldung, wenn das Backend nicht erreichbar ist', async () => {
     vi.mocked(apiClient.get).mockRejectedValue(new Error('Network Error'))
 
-    const wrapper = mount(HomeView)
+    const wrapper = mount(HomeView, { global: { stubs: { RouterLink: RouterLinkStub } } })
     await flushPromises()
 
     expect(wrapper.text()).toContain('Die Rezepte konnten nicht geladen werden')

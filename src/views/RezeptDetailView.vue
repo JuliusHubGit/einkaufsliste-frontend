@@ -5,7 +5,8 @@ import axios from 'axios'
 import RezeptDetail from '@/components/RezeptDetail.vue'
 import KochTimer from '@/components/KochTimer.vue'
 import { apiClient } from '@/api/client'
-import type { Rezept } from '@/types'
+import type { Einkaufslisteneintrag, Rezept } from '@/types'
+import Button from 'primevue/button'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 
@@ -14,6 +15,9 @@ const rezept = ref<Rezept | null>(null)
 const laedt = ref(true)
 const nichtGefunden = ref(false)
 const fehler = ref(false)
+const uebernimmt = ref(false)
+const uebernommen = ref(false)
+const uebernahmeFehler = ref(false)
 
 onMounted(async () => {
   try {
@@ -29,6 +33,23 @@ onMounted(async () => {
     laedt.value = false
   }
 })
+
+async function zutatenUebernehmen() {
+  if (!rezept.value) return
+  uebernimmt.value = true
+  uebernommen.value = false
+  uebernahmeFehler.value = false
+  try {
+    await apiClient.post<Einkaufslisteneintrag[]>(
+      `/api/rezepte/${rezept.value.id}/zutaten-hinzufuegen`,
+    )
+    uebernommen.value = true
+  } catch {
+    uebernahmeFehler.value = true
+  } finally {
+    uebernimmt.value = false
+  }
+}
 </script>
 
 <template>
@@ -42,6 +63,23 @@ onMounted(async () => {
     <Message v-else-if="fehler" severity="error">Das Rezept konnte nicht geladen werden.</Message>
     <template v-else-if="rezept">
       <RezeptDetail :rezept="rezept" />
+      <section class="uebernahme" aria-label="Einkaufsliste">
+        <Button
+          label="Zutaten auf die Einkaufsliste"
+          icon="pi pi-cart-plus"
+          :loading="uebernimmt"
+          :disabled="rezept.zutaten.length === 0"
+          @click="zutatenUebernehmen"
+        />
+        <Message v-if="uebernommen" severity="success">
+          Die Zutaten stehen jetzt auf der Einkaufsliste.
+          <RouterLink to="/einkaufsliste">Zur Einkaufsliste</RouterLink>
+        </Message>
+        <Message v-if="uebernahmeFehler" severity="error">
+          Die Zutaten konnten nicht übernommen werden. Prüfe die Verbindung und versuche es noch
+          einmal.
+        </Message>
+      </section>
       <section class="timer-feld" aria-labelledby="timer-titel">
         <h2 id="timer-titel">Timer</h2>
         <KochTimer />
@@ -68,6 +106,13 @@ onMounted(async () => {
 
 .zurueck:hover {
   color: var(--tinte);
+}
+
+.uebernahme {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
 }
 
 .timer-feld {

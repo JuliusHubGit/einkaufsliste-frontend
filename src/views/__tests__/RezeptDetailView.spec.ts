@@ -23,6 +23,7 @@ describe('RezeptDetailView', () => {
         portionen: 2,
         schwierigkeit: 'NORMAL',
         zutaten: [],
+        schritte: [],
         besitzer: 'demo',
       },
     })

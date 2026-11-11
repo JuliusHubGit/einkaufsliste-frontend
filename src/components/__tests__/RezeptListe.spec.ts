@@ -11,6 +11,7 @@ const beispielRezepte: Rezept[] = [
     portionen: 2,
     schwierigkeit: 'NORMAL',
     zutaten: [],
+    schritte: [],
     besitzer: 'demo',
   },
   {
@@ -19,6 +20,7 @@ const beispielRezepte: Rezept[] = [
     portionen: 4,
     schwierigkeit: 'AUFWAENDIG',
     zutaten: [],
+    schritte: [],
     besitzer: 'demo',
   },
 ]

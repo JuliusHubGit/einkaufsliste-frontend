@@ -12,6 +12,7 @@ describe('RezeptDetail', () => {
           portionen: 4,
           schwierigkeit: 'NORMAL',
           zutaten: [],
+          schritte: [],
           besitzer: 'demo',
         },
       },

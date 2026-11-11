@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Rezept } from '@/types'
+import { schwierigkeitBezeichnung, type Rezept } from '@/types'
 import { RouterLink } from 'vue-router'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
@@ -18,7 +18,10 @@ const emit = defineEmits<{
     <li v-for="rezept in rezepte" :key="rezept.id" class="register-zeile">
       <RouterLink :to="{ name: 'rezept-detail', params: { id: rezept.id } }" class="rezept-link">
         <span class="titel">{{ rezept.titel }}</span>
-        <span class="portionen">{{ rezept.portionen }} Portionen</span>
+        <span class="angaben">
+          <span class="portionen">{{ rezept.portionen }} Portionen</span>
+          <span class="plakette">{{ schwierigkeitBezeichnung[rezept.schwierigkeit] }}</span>
+        </span>
       </RouterLink>
       <Button
         icon="pi pi-trash"
@@ -69,7 +72,23 @@ const emit = defineEmits<{
   text-underline-offset: 0.2em;
 }
 
+.angaben {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .portionen {
   color: var(--zinn);
+}
+
+.plakette {
+  padding: 0.05rem 0.6rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--kobalt);
+  border: 1px solid currentColor;
+  border-radius: 999px;
 }
 </style>

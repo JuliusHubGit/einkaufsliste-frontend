@@ -19,6 +19,7 @@ const beispielRezepte = [
     portionen: 2,
     schwierigkeit: 'NORMAL',
     zutaten: [],
+    schritte: [],
     besitzer: 'demo',
   },
   {
@@ -27,6 +28,7 @@ const beispielRezepte = [
     portionen: 4,
     schwierigkeit: 'NORMAL',
     zutaten: [],
+    schritte: [],
     besitzer: 'demo',
   },
 ]
@@ -45,6 +47,7 @@ describe('HomeView', () => {
           portionen: 2,
           schwierigkeit: 'NORMAL',
           zutaten: [],
+          schritte: [],
           besitzer: 'demo',
         },
       ],
@@ -105,6 +108,7 @@ describe('HomeView', () => {
       portionen: 2,
       schwierigkeit: 'EINFACH',
       zutaten: [],
+      schritte: [],
       besitzer: 'demo',
     })
     await wrapper.vm.$nextTick()

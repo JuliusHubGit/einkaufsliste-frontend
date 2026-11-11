@@ -13,12 +13,20 @@ export interface Zutat {
   einheit: string
 }
 
+export interface Schritt {
+  id: number
+  position: number
+  beschreibung: string
+  zutaten: { id: number; zutat: Zutat }[]
+}
+
 export interface Rezept {
   id: number
   titel: string
   portionen: number
   schwierigkeit: Schwierigkeit
   zutaten: Zutat[]
+  schritte: Schritt[]
   besitzer: string
 }
 
@@ -27,9 +35,11 @@ export interface NeuesRezept {
   portionen: number
   schwierigkeit: Schwierigkeit
   zutaten: { name: string; menge: number; einheit: string }[]
+  /** zutaten: Positionen (ab 0) in der Zutatenliste oben */
+  schritte: { beschreibung: string; zutaten: number[] }[]
 }
 
-/** Feldfehler beim Anlegen eines Rezepts; Zutaten-Fehler heissen z. B. 'zutaten[0].menge' */
+/** Feldfehler beim Anlegen eines Rezepts, z. B. 'zutaten[0].menge' oder 'schritte[1].beschreibung' */
 export type RezeptFeldfehler = Record<string, string>
 
 export interface Einkaufslisteneintrag {

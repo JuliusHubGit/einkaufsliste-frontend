@@ -2,7 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
 import InputNumber from 'primevue/inputnumber'
 import InputText from 'primevue/inputtext'
+import MultiSelect from 'primevue/multiselect'
 import SelectButton from 'primevue/selectbutton'
+import Textarea from 'primevue/textarea'
 import RezeptFormular from '../RezeptFormular.vue'
 import { apiClient } from '@/api/client'
 
@@ -18,6 +20,7 @@ const pfannkuchen = {
   portionen: 4,
   schwierigkeit: 'EINFACH',
   zutaten: [{ id: 1, name: 'Mehl', menge: 200, einheit: 'g' }],
+  schritte: [],
   besitzer: 'demo',
 }
 
@@ -27,6 +30,18 @@ function feld(wrapper: VueWrapper, id: string) {
 
 function zahl(wrapper: VueWrapper, id: string) {
   return wrapper.findAllComponents(InputNumber).find((eingabe) => eingabe.props('inputId') === id)!
+}
+
+function zutatenAuswahl(wrapper: VueWrapper, schritt: number) {
+  return wrapper.findAllComponents(MultiSelect)[schritt]!
+}
+
+async function zutatenEintragen(wrapper: VueWrapper, namen: string[]) {
+  for (const [index, name] of namen.entries()) {
+    await wrapper.get('button[aria-label="Zutat hinzufügen"]').trigger('click')
+    feld(wrapper, `zutat-${index}-name`).vm.$emit('update:modelValue', name)
+  }
+  await wrapper.vm.$nextTick()
 }
 
 async function absenden(wrapper: VueWrapper) {
@@ -57,6 +72,7 @@ describe('RezeptFormular', () => {
       portionen: 4,
       schwierigkeit: 'EINFACH',
       zutaten: [{ name: 'Mehl', menge: 200, einheit: 'g' }],
+      schritte: [],
     })
     expect(wrapper.emitted('angelegt')).toEqual([[pfannkuchen]])
   })
@@ -120,5 +136,91 @@ describe('RezeptFormular', () => {
     await wrapper.get('button[aria-label="Abbrechen"]').trigger('click')
 
     expect(wrapper.emitted('abgebrochen')).toHaveLength(1)
+  })
+
+  it('schickt Schritte mit den Positionen der gewaehlten Zutaten', async () => {
+    vi.mocked(apiClient.post).mockResolvedValue({ status: 201, data: pfannkuchen })
+    const wrapper = mount(RezeptFormular)
+
+    await zutatenEintragen(wrapper, ['Mehl', 'Eier', 'Milch'])
+    await wrapper.get('button[aria-label="Schritt hinzufügen"]').trigger('click')
+    await wrapper.get('button[aria-label="Schritt hinzufügen"]').trigger('click')
+    const [verruehren, backen] = wrapper.findAllComponents(Textarea)
+    verruehren!.vm.$emit('update:modelValue', 'Verrühren')
+    backen!.vm.$emit('update:modelValue', 'Ausbacken')
+    // Schluessel 0-2 gehoeren zu den Zutaten, die Auswahl ist absichtlich nicht sortiert
+    zutatenAuswahl(wrapper, 0).vm.$emit('update:modelValue', [2, 0])
+    await absenden(wrapper)
+
+    expect(vi.mocked(apiClient.post).mock.calls[0]![1]).toMatchObject({
+      schritte: [
+        { beschreibung: 'Verrühren', zutaten: [0, 2] },
+        { beschreibung: 'Ausbacken', zutaten: [] },
+      ],
+    })
+  })
+
+  it('bietet die Zutaten von oben mit ihrem Namen zur Auswahl an', async () => {
+    const wrapper = mount(RezeptFormular)
+
+    await zutatenEintragen(wrapper, ['Mehl', ''])
+    await wrapper.get('button[aria-label="Schritt hinzufügen"]').trigger('click')
+
+    expect(zutatenAuswahl(wrapper, 0).props('options')).toEqual([
+      { schluessel: 0, bezeichnung: 'Mehl' },
+      { schluessel: 1, bezeichnung: 'Zutat 2' },
+    ])
+  })
+
+  it('sperrt die Zutatenauswahl, solange es keine Zutaten gibt', async () => {
+    const wrapper = mount(RezeptFormular)
+
+    await wrapper.get('button[aria-label="Schritt hinzufügen"]').trigger('click')
+
+    expect(zutatenAuswahl(wrapper, 0).props('disabled')).toBe(true)
+  })
+
+  it('nimmt eine entfernte Zutat aus den Schritten heraus', async () => {
+    vi.mocked(apiClient.post).mockResolvedValue({ status: 201, data: pfannkuchen })
+    const wrapper = mount(RezeptFormular)
+
+    await zutatenEintragen(wrapper, ['Mehl', 'Eier', 'Milch'])
+    await wrapper.get('button[aria-label="Schritt hinzufügen"]').trigger('click')
+    zutatenAuswahl(wrapper, 0).vm.$emit('update:modelValue', [0, 2])
+    await wrapper.get('button[aria-label="Zutat 1 entfernen"]').trigger('click')
+    await absenden(wrapper)
+
+    // Milch rutscht auf Position 1, Mehl ist weg
+    expect(vi.mocked(apiClient.post).mock.calls[0]![1]).toMatchObject({
+      schritte: [{ beschreibung: '', zutaten: [1] }],
+    })
+    expect(zutatenAuswahl(wrapper, 0).props('modelValue')).toEqual([2])
+  })
+
+  it('entfernt einen Schritt wieder', async () => {
+    const wrapper = mount(RezeptFormular)
+
+    await wrapper.get('button[aria-label="Schritt hinzufügen"]').trigger('click')
+    await wrapper.get('button[aria-label="Schritt hinzufügen"]').trigger('click')
+    await wrapper.get('button[aria-label="Schritt 2 entfernen"]').trigger('click')
+
+    expect(wrapper.findAll('.schritt')).toHaveLength(1)
+  })
+
+  it('zeigt Feldfehler an den Schritten an', async () => {
+    vi.mocked(apiClient.post).mockRejectedValue({
+      isAxiosError: true,
+      response: {
+        status: 400,
+        data: { feldfehler: { 'schritte[0].beschreibung': 'Bitte den Schritt beschreiben' } },
+      },
+    })
+    const wrapper = mount(RezeptFormular)
+
+    await wrapper.get('button[aria-label="Schritt hinzufügen"]').trigger('click')
+    await absenden(wrapper)
+
+    expect(wrapper.text()).toContain('Bitte den Schritt beschreiben')
+    expect(wrapper.findComponent(Textarea).props('invalid')).toBe(true)
   })
 })

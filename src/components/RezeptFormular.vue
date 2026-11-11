@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import axios from 'axios'
 import Button from 'primevue/button'
 import InputNumber from 'primevue/inputnumber'
 import InputText from 'primevue/inputtext'
 import Message from 'primevue/message'
+import MultiSelect from 'primevue/multiselect'
 import SelectButton from 'primevue/selectbutton'
+import Textarea from 'primevue/textarea'
 import { apiClient } from '@/api/client'
 import {
   schwierigkeitBezeichnung,
@@ -22,6 +24,13 @@ interface ZutatZeile {
   einheit: string
 }
 
+interface SchrittZeile {
+  schluessel: number
+  beschreibung: string
+  /** Schluessel der verwendeten Zutatenzeilen */
+  zutaten: number[]
+}
+
 const emit = defineEmits<{
   angelegt: [rezept: Rezept]
   abgebrochen: []
@@ -36,6 +45,7 @@ const titel = ref('')
 const portionen = ref<number | null>(2)
 const schwierigkeit = ref<Schwierigkeit>('NORMAL')
 const zutaten = ref<ZutatZeile[]>([])
+const schritte = ref<SchrittZeile[]>([])
 const feldfehler = ref<RezeptFeldfehler>({})
 const fehler = ref(false)
 const sendet = ref(false)
@@ -46,8 +56,27 @@ function zutatHinzufuegen() {
 }
 
 function zutatEntfernen(index: number) {
-  zutaten.value.splice(index, 1)
+  const [entfernt] = zutaten.value.splice(index, 1)
+  for (const schritt of schritte.value) {
+    schritt.zutaten = schritt.zutaten.filter((schluessel) => schluessel !== entfernt?.schluessel)
+  }
   // Feldfehler haengen am Index und passen nach dem Entfernen nicht mehr
+  feldfehler.value = {}
+}
+
+const zutatOptionen = computed(() =>
+  zutaten.value.map((zutat, index) => ({
+    schluessel: zutat.schluessel,
+    bezeichnung: zutat.name.trim() || `Zutat ${index + 1}`,
+  })),
+)
+
+function schrittHinzufuegen() {
+  schritte.value.push({ schluessel: naechsterSchluessel++, beschreibung: '', zutaten: [] })
+}
+
+function schrittEntfernen(index: number) {
+  schritte.value.splice(index, 1)
   feldfehler.value = {}
 }
 
@@ -63,6 +92,13 @@ async function speichern() {
       name: zutat.name,
       menge: zutat.menge ?? 0,
       einheit: zutat.einheit,
+    })),
+    // Das Backend erwartet die Position der Zutat in der Liste oben, nicht den Schluessel
+    schritte: schritte.value.map((schritt) => ({
+      beschreibung: schritt.beschreibung,
+      zutaten: zutaten.value
+        .map((zutat, index) => (schritt.zutaten.includes(zutat.schluessel) ? index : -1))
+        .filter((index) => index >= 0),
     })),
   }
   try {
@@ -208,8 +244,80 @@ async function speichern() {
         icon="pi pi-plus"
         severity="secondary"
         variant="outlined"
-        class="zutat-hinzufuegen"
+        class="hinzufuegen"
         @click="zutatHinzufuegen"
+      />
+    </fieldset>
+
+    <fieldset class="schritte">
+      <legend>Schritte</legend>
+      <ol v-if="schritte.length > 0" class="schrittliste">
+        <li v-for="(schritt, index) in schritte" :key="schritt.schluessel" class="schritt">
+          <div class="schritt-kopf">
+            <label :for="`schritt-${schritt.schluessel}-beschreibung`"
+              >Schritt {{ index + 1 }}</label
+            >
+            <Button
+              icon="pi pi-trash"
+              severity="secondary"
+              variant="text"
+              rounded
+              :aria-label="`Schritt ${index + 1} entfernen`"
+              @click="schrittEntfernen(index)"
+            />
+          </div>
+          <div class="feld">
+            <Textarea
+              :id="`schritt-${schritt.schluessel}-beschreibung`"
+              v-model="schritt.beschreibung"
+              rows="3"
+              auto-resize
+              :invalid="!!feldfehler[`schritte[${index}].beschreibung`]"
+              fluid
+            />
+            <Message
+              v-if="feldfehler[`schritte[${index}].beschreibung`]"
+              severity="error"
+              size="small"
+              variant="simple"
+            >
+              {{ feldfehler[`schritte[${index}].beschreibung`] }}
+            </Message>
+          </div>
+          <div class="feld">
+            <label :for="`schritt-${schritt.schluessel}-zutaten`" class="nebenbeschriftung"
+              >Verwendete Zutaten</label
+            >
+            <MultiSelect
+              v-model="schritt.zutaten"
+              :input-id="`schritt-${schritt.schluessel}-zutaten`"
+              :options="zutatOptionen"
+              option-label="bezeichnung"
+              option-value="schluessel"
+              display="chip"
+              :placeholder="zutaten.length > 0 ? 'Zutaten wählen' : 'Erst Zutaten oben eintragen'"
+              :disabled="zutaten.length === 0"
+              :invalid="!!feldfehler[`schritte[${index}].zutaten`]"
+              fluid
+            />
+            <Message
+              v-if="feldfehler[`schritte[${index}].zutaten`]"
+              severity="error"
+              size="small"
+              variant="simple"
+            >
+              {{ feldfehler[`schritte[${index}].zutaten`] }}
+            </Message>
+          </div>
+        </li>
+      </ol>
+      <Button
+        label="Schritt hinzufügen"
+        icon="pi pi-plus"
+        severity="secondary"
+        variant="outlined"
+        class="hinzufuegen"
+        @click="schrittHinzufuegen"
       />
     </fieldset>
 
@@ -243,8 +351,15 @@ async function speichern() {
 
 .feld label,
 .beschriftung,
-.zutaten legend {
+.schritt-kopf label,
+fieldset legend {
   font-weight: 600;
+}
+
+.feld .nebenbeschriftung {
+  font-weight: 400;
+  color: var(--zinn);
+  font-size: 0.9375rem;
 }
 
 .zeile {
@@ -262,16 +377,17 @@ async function speichern() {
   font-variant-numeric: tabular-nums;
 }
 
-.zutaten {
+fieldset {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   border: 0;
   padding: 0;
   margin: 0;
+  min-width: 0;
 }
 
-.zutaten legend {
+fieldset legend {
   padding: 0;
   margin-bottom: 0.35rem;
 }
@@ -305,8 +421,31 @@ async function speichern() {
   grid-area: entfernen;
 }
 
-.zutat-hinzufuegen {
+.hinzufuegen {
   align-self: flex-start;
+}
+
+.schrittliste {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.schritt {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--linie);
+}
+
+.schritt-kopf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .aktionen {

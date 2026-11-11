@@ -17,7 +17,14 @@ const global = { stubs: { RouterLink: RouterLinkStub } }
 describe('RezeptDetailView', () => {
   it('laedt das Rezept zur Id aus der Route und zeigt es an', async () => {
     vi.mocked(apiClient.get).mockResolvedValue({
-      data: { id: 1, titel: 'Spaghetti Carbonara', portionen: 2, besitzer: 'demo' },
+      data: {
+        id: 1,
+        titel: 'Spaghetti Carbonara',
+        portionen: 2,
+        schwierigkeit: 'NORMAL',
+        zutaten: [],
+        besitzer: 'demo',
+      },
     })
 
     const wrapper = mount(RezeptDetailView, { global })

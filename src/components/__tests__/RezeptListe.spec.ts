@@ -5,8 +5,22 @@ import RezeptListe from '../RezeptListe.vue'
 import type { Rezept } from '@/types'
 
 const beispielRezepte: Rezept[] = [
-  { id: 1, titel: 'Spaghetti Carbonara', portionen: 2, besitzer: 'demo' },
-  { id: 2, titel: 'Linsensuppe', portionen: 4, besitzer: 'demo' },
+  {
+    id: 1,
+    titel: 'Spaghetti Carbonara',
+    portionen: 2,
+    schwierigkeit: 'NORMAL',
+    zutaten: [],
+    besitzer: 'demo',
+  },
+  {
+    id: 2,
+    titel: 'Linsensuppe',
+    portionen: 4,
+    schwierigkeit: 'AUFWAENDIG',
+    zutaten: [],
+    besitzer: 'demo',
+  },
 ]
 
 describe('RezeptListe', () => {
@@ -28,6 +42,17 @@ describe('RezeptListe', () => {
     expect(links.map((link) => link.props('to'))).toEqual([
       { name: 'rezept-detail', params: { id: 1 } },
       { name: 'rezept-detail', params: { id: 2 } },
+    ])
+  })
+
+  it('zeigt die Schwierigkeit als Plakette', () => {
+    const wrapper = mount(RezeptListe, {
+      props: { rezepte: beispielRezepte },
+      global: { stubs: { RouterLink: RouterLinkStub } },
+    })
+    expect(wrapper.findAll('.plakette').map((plakette) => plakette.text())).toEqual([
+      'Normal',
+      'Aufwändig',
     ])
   })
 

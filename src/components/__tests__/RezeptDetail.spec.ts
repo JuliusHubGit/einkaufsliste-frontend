@@ -5,7 +5,16 @@ import RezeptDetail from '../RezeptDetail.vue'
 describe('RezeptDetail', () => {
   it('zeigt Titel und Portionen des Rezepts', () => {
     const wrapper = mount(RezeptDetail, {
-      props: { rezept: { id: 1, titel: 'Linsensuppe', portionen: 4, besitzer: 'demo' } },
+      props: {
+        rezept: {
+          id: 1,
+          titel: 'Linsensuppe',
+          portionen: 4,
+          schwierigkeit: 'NORMAL',
+          zutaten: [],
+          besitzer: 'demo',
+        },
+      },
     })
 
     expect(wrapper.text()).toContain('Linsensuppe')

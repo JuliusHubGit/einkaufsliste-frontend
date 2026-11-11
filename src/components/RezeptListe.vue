@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { schwierigkeitBezeichnung, type Rezept } from '@/types'
+import type { Rezept } from '@/types'
 import { RouterLink } from 'vue-router'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
+import SchwierigkeitPlakette from '@/components/SchwierigkeitPlakette.vue'
 
 defineProps<{
   rezepte: Rezept[]
@@ -20,7 +21,7 @@ const emit = defineEmits<{
         <span class="titel">{{ rezept.titel }}</span>
         <span class="angaben">
           <span class="portionen">{{ rezept.portionen }} Portionen</span>
-          <span class="plakette">{{ schwierigkeitBezeichnung[rezept.schwierigkeit] }}</span>
+          <SchwierigkeitPlakette :schwierigkeit="rezept.schwierigkeit" />
         </span>
       </RouterLink>
       <Button
@@ -81,14 +82,5 @@ const emit = defineEmits<{
 
 .portionen {
   color: var(--zinn);
-}
-
-.plakette {
-  padding: 0.05rem 0.6rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--kobalt);
-  border: 1px solid currentColor;
-  border-radius: 999px;
 }
 </style>

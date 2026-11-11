@@ -66,4 +66,39 @@ describe('EinkaufslisteListe', () => {
     const wrapper = mount(EinkaufslisteListe, { props: { eintraege: [] } })
     expect(wrapper.text()).toContain('Die Einkaufsliste ist leer')
   })
+
+  it('zeigt nur Eintraege, deren Name den Suchtext enthaelt', () => {
+    const wrapper = mount(EinkaufslisteListe, {
+      props: { eintraege: beispielEintraege, filter: '  LI ' },
+    })
+
+    expect(wrapper.findAll('li .name').map((el) => el.text())).toEqual(['Linsen'])
+    expect(wrapper.find('li.erledigt').exists()).toBe(true)
+  })
+
+  it('sperrt das Umsortieren, solange gefiltert wird', () => {
+    const wrapper = mount(EinkaufslisteListe, {
+      props: { eintraege: beispielEintraege, filter: 'mil' },
+    })
+
+    expect(wrapper.findAll('li .name').map((el) => el.text())).toEqual(['Milch'])
+    expect(wrapper.find('.drag-griff').exists()).toBe(false)
+  })
+
+  it('meldet, wenn kein Eintrag zum Suchtext passt', () => {
+    const wrapper = mount(EinkaufslisteListe, {
+      props: { eintraege: beispielEintraege, filter: 'Butter' },
+    })
+
+    expect(wrapper.text()).toContain('Kein Eintrag passt zu „Butter“')
+  })
+
+  it('zeigt ohne Suchtext wieder alles mit Drag-Griffen', () => {
+    const wrapper = mount(EinkaufslisteListe, {
+      props: { eintraege: beispielEintraege, filter: '   ' },
+    })
+
+    expect(wrapper.findAll('li .name')).toHaveLength(3)
+    expect(wrapper.findAll('.drag-griff')).toHaveLength(2)
+  })
 })

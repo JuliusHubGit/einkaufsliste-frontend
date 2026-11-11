@@ -4,6 +4,9 @@ import EinkaufslisteListe from '@/components/EinkaufslisteListe.vue'
 import EinkaufslistenFormular from '@/components/EinkaufslistenFormular.vue'
 import { apiClient } from '@/api/client'
 import type { EintragAenderung, Einkaufslisteneintrag } from '@/types'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
+import InputText from 'primevue/inputtext'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 
@@ -12,6 +15,7 @@ const laedt = ref(true)
 const fehler = ref(false)
 const speicherFehler = ref(false)
 const aenderungsFehler = ref<string | null>(null)
+const filter = ref('')
 
 onMounted(async () => {
   try {
@@ -91,8 +95,17 @@ async function reihenfolgeSpeichern(ids: number[]) {
         Die neue Reihenfolge konnte nicht gespeichert werden.
       </Message>
       <Message v-if="aenderungsFehler" severity="error">{{ aenderungsFehler }}</Message>
+      <div v-if="eintraege.length > 0" class="suche">
+        <label for="einkaufsliste-suche">Einkaufsliste durchsuchen</label>
+        <IconField>
+          <InputIcon class="pi pi-search" />
+          <InputText id="einkaufsliste-suche" v-model="filter" type="search" fluid />
+        </IconField>
+        <small v-if="filter.trim()" class="hinweis"> Zum Umsortieren den Suchtext leeren. </small>
+      </div>
       <EinkaufslisteListe
         :eintraege="eintraege"
+        :filter="filter"
         @umsortiert="reihenfolgeSpeichern"
         @abhaken="abhaken"
         @loeschen="loeschen"
@@ -107,5 +120,19 @@ async function reihenfolgeSpeichern(ids: number[]) {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+.suche {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.suche label {
+  font-weight: 600;
+}
+
+.hinweis {
+  color: var(--zinn);
 }
 </style>

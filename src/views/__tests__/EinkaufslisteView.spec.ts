@@ -109,4 +109,23 @@ describe('EinkaufslisteView', () => {
     expect(wrapper.text()).toContain('Milch')
     expect(wrapper.text()).toContain('Der Eintrag konnte nicht gelöscht werden')
   })
+
+  it('filtert die Liste ueber das Suchfeld', async () => {
+    vi.mocked(apiClient.get).mockResolvedValue({ data: [milch, eier] })
+    const wrapper = mount(EinkaufslisteView)
+    await flushPromises()
+
+    await wrapper.get('#einkaufsliste-suche').setValue('ei')
+
+    expect(wrapper.findAll('li .name').map((el) => el.text())).toEqual(['Eier'])
+    expect(wrapper.text()).toContain('Zum Umsortieren den Suchtext leeren.')
+  })
+
+  it('zeigt kein Suchfeld bei leerer Liste', async () => {
+    vi.mocked(apiClient.get).mockResolvedValue({ data: [] })
+    const wrapper = mount(EinkaufslisteView)
+    await flushPromises()
+
+    expect(wrapper.find('#einkaufsliste-suche').exists()).toBe(false)
+  })
 })

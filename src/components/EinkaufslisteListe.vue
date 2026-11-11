@@ -5,9 +5,14 @@ import Message from 'primevue/message'
 import EintragZeile from '@/components/EintragZeile.vue'
 import type { Einkaufslisteneintrag } from '@/types'
 
-const props = defineProps<{
-  eintraege: Einkaufslisteneintrag[]
-}>()
+const props = withDefaults(
+  defineProps<{
+    eintraege: Einkaufslisteneintrag[]
+    /** Suchtext; solange er gesetzt ist, laesst sich nicht umsortieren */
+    filter?: string
+  }>(),
+  { filter: '' },
+)
 
 const emit = defineEmits<{
   umsortiert: [ids: number[]]
@@ -27,6 +32,22 @@ watch(
   { immediate: true },
 )
 
+const suche = computed(() => normalisieren(props.filter))
+const gefiltert = computed(() => suche.value !== '')
+const passt = (eintrag: Einkaufslisteneintrag) => normalisieren(eintrag.name).includes(suche.value)
+const gefilterteOffene = computed(() => offene.value.filter(passt))
+const angezeigteErledigte = computed(() => erledigte.value.filter(passt))
+const keinTreffer = computed(
+  () =>
+    gefiltert.value &&
+    gefilterteOffene.value.length === 0 &&
+    angezeigteErledigte.value.length === 0,
+)
+
+function normalisieren(text: string) {
+  return text.trim().toLocaleLowerCase('de-DE')
+}
+
 function nachVerschieben() {
   emit(
     'umsortiert',
@@ -37,8 +58,23 @@ function nachVerschieben() {
 
 <template>
   <Message v-if="eintraege.length === 0" severity="info">Die Einkaufsliste ist leer.</Message>
+  <Message v-else-if="keinTreffer" severity="info"
+    >Kein Eintrag passt zu „{{ filter.trim() }}“.</Message
+  >
   <template v-else>
+    <ul v-if="gefiltert" class="eintraege">
+      <li v-for="eintrag in gefilterteOffene" :key="eintrag.id" class="eintrag">
+        <EintragZeile
+          :eintrag="eintrag"
+          @abhaken="emit('abhaken', eintrag)"
+          @loeschen="emit('loeschen', eintrag.id)"
+          @gespeichert="emit('gespeichert', $event)"
+        />
+        <span class="griff-platz" aria-hidden="true" />
+      </li>
+    </ul>
     <draggable
+      v-else
       v-model="offene"
       item-key="id"
       handle=".drag-griff"
@@ -62,10 +98,14 @@ function nachVerschieben() {
       </template>
     </draggable>
 
-    <section v-if="erledigte.length > 0" class="erledigt-bereich" aria-labelledby="erledigt-titel">
+    <section
+      v-if="angezeigteErledigte.length > 0"
+      class="erledigt-bereich"
+      aria-labelledby="erledigt-titel"
+    >
       <h2 id="erledigt-titel">Erledigt</h2>
       <ul class="eintraege">
-        <li v-for="eintrag in erledigte" :key="eintrag.id" class="eintrag erledigt">
+        <li v-for="eintrag in angezeigteErledigte" :key="eintrag.id" class="eintrag erledigt">
           <EintragZeile
             :eintrag="eintrag"
             @abhaken="emit('abhaken', eintrag)"
